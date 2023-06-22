@@ -12,11 +12,7 @@ type RedisCache struct {
 }
 
 func NewRedisCache(o *redis.Options) *RedisCache {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
+	rdb := redis.NewClient(o)
 
 	return &RedisCache{
 		DB: rdb,
@@ -39,4 +35,8 @@ func (pc RedisCache) Set(key string, v interface{}, ttl time.Duration) error {
 		return err
 	}
 	return pc.DB.Set(key, p, ttl).Err()
+}
+
+func (pc RedisCache) Close() error {
+	return pc.DB.Close()
 }
