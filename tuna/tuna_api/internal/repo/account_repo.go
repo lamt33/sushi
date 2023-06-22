@@ -1,7 +1,9 @@
 package repo
 
 import (
-	"github.com/jmoiron/sqlx"
+	"context"
+
+	"github.com/lamt3/sushi/tuna/common/db"
 )
 
 type IAccountRepo interface {
@@ -10,10 +12,10 @@ type IAccountRepo interface {
 }
 
 type acccountRepo struct {
-	DB *sqlx.DB
+	DB *db.OPPG
 }
 
-func NewPGAccountRepo(pgDB *sqlx.DB) *acccountRepo {
+func NewPGAccountRepo(pgDB *db.OPPG) *acccountRepo {
 	return &acccountRepo{
 		DB: pgDB,
 	}
@@ -21,7 +23,8 @@ func NewPGAccountRepo(pgDB *sqlx.DB) *acccountRepo {
 }
 
 func (pr *acccountRepo) InsertUser() {
-
+	primary := pr.DB.Primary()
+	primary.ExecContext(context.Background(), "INSERT")
 }
 
 func (pr *acccountRepo) UpdateUser() {

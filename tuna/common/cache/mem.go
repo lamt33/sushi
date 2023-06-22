@@ -29,6 +29,7 @@ func (pc inMemCache) Set(key string, value interface{}, ttl time.Duration) error
 	if err != nil {
 		return err
 	}
+
 	ok := pc.DB.SetWithTTL(key, p, 1, ttl)
 	if !ok {
 		return logger.Error("could not set cache key: %s with value %+v", key, value)

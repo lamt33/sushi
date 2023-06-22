@@ -10,8 +10,10 @@ import (
 	"time"
 
 	"github.com/felixge/httpsnoop"
+	"github.com/go-redis/redis"
 	"github.com/jmoiron/sqlx"
 	"github.com/julienschmidt/httprouter"
+	"github.com/lamt3/sushi/tuna/common/cache"
 	"github.com/lamt3/sushi/tuna/common/db"
 	"github.com/lamt3/sushi/tuna/common/logger"
 	"github.com/lamt3/sushi/tuna/common/web"
@@ -65,16 +67,41 @@ func initialize() http.HandlerFunc {
 	pgDB := db.PGBuilder().
 		ConnectionString("abc").
 		AddSettings(func(d *sqlx.DB) {
+
+		}).
+		Build()
+
+	defer pgDB.Close()
+
+	opPGDB := db.OPPGBuilder().
+		PrimaryConn("ABC", func(d *sqlx.DB) {
+			d.SetMaxOpenConns(15)
+			d.SetMaxIdleConns(15)
+			d.SetConnMaxLifetime(2 * time.Minute)
+		}).SecondaryConn([]string{"abc", "bcd"},
+		func(d *sqlx.DB) {
 			d.SetMaxOpenConns(15)
 			d.SetMaxIdleConns(15)
 			d.SetConnMaxLifetime(2 * time.Minute)
 		}).
 		Build()
 
-	defer pgDB.Close()
+	defer opPGDB.Close()
 
-	acctRepo := repo.NewPGAccountRepo(pgDB)
-	acctSvc := account.NewAccountSvc(acctRepo)
+	redisCache := cache.NewRedisCache(
+		&redis.Options{
+			Addr:         "8080",
+			Password:     "password",
+			DB:           1,
+			MaxRetries:   3,
+			PoolSize:     10,
+			ReadTimeout:  3 * time.Second,
+			WriteTimeout: 3 * time.Second,
+		},
+	)
+
+	acctRepo := repo.NewPGAccountRepo(opPGDB)
+	acctSvc := account.NewAccountSvc(acctRepo, redisCache)
 	accountHandler := handlers.NewAccountHandler(&acctSvc)
 
 	return createRoutes(accountHandler)
