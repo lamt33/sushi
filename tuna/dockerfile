@@ -1,0 +1,21 @@
+# syntax=docker/dockerfile:1
+# Use the specified Docker version
+# FROM docker:1.20
+
+# Use the specified Go version
+FROM golang:1.20-alpine
+# Copy the Go binary into the container
+WORKDIR /app
+
+COPY go.mod ./
+COPY go.sum ./
+RUN go mod download
+
+COPY /common ./common
+COPY /tuna_api ./tuna_api
+
+RUN go build ./tuna_api/cmd
+
+EXPOSE 8080
+# Set the command to run the binary when the container starts
+CMD ["./cmd"]

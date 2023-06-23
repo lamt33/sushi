@@ -1,15 +1,22 @@
 version: "3.7"
 networks:
-  app-tier:
+  my-network:
     driver: bridge
+
 services:
-  # webapp:
-  #   build: .
-  #   ports:
-  #     - 8080:8080
-  #   depends_on:
-  #     - redis
-  #     - postgres
+  webapp:
+    container_name: tuna_api
+    build:
+      dockerfile: dockerfile
+    ports:
+      - 8080:8080
+    depends_on:
+      - redis
+      - database
+    networks:
+      - my-network
+ 
+  
   #   environment:
   #     - DATADOG_API_KEY=YOUR_DATADOG_API_KEY
   #     - DATADOG_APP_KEY=YOUR_DATADOG_APP_KEY
@@ -29,12 +36,17 @@ services:
       - ./postgres-data:/var/lib/postgresql/data
       # copy the sql script to create tables
       - ./sql:/docker-entrypoint-initdb.d
+    networks:
+      - my-network
+
   redis:
     image: redis:6.2.6
     ports:
       - 6379:6379
     volumes:
       - redis_data:/data
+    networks:
+      - my-network
 
   datadog:
     container_name: dd-agent
@@ -51,6 +63,13 @@ services:
       - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
       - DD_CONTAINER_EXCLUDE=webapp_datadog_1
       - DD_SITE=ap1.datadoghq.com
+    ports:
+      - "8126:8126/tcp"
+      - "8125:8125/udp"
+    networks:
+      - my-network
+
+
 
 volumes:
   redis_data:
