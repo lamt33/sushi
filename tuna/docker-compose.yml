@@ -1,0 +1,59 @@
+version: "3.7"
+networks:
+  app-tier:
+    driver: bridge
+services:
+  # webapp:
+  #   build: .
+  #   ports:
+  #     - 8080:8080
+  #   depends_on:
+  #     - redis
+  #     - postgres
+  #   environment:
+  #     - DATADOG_API_KEY=YOUR_DATADOG_API_KEY
+  #     - DATADOG_APP_KEY=YOUR_DATADOG_APP_KEY
+  database:
+    container_name: plum_pg
+    image: postgres:14.2
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      # copy the sql script to create tables
+      - ./sql:/docker-entrypoint-initdb.d
+  redis:
+    image: redis:6.2.6
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+
+  datadog:
+    container_name: dd-agent
+    image: gcr.io/datadoghq/agent:7
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+    environment:
+      - DD_API_KEY=c5913dd36884f9072ca111f19161e5b0
+      - DD_APM_ENABLED=true
+      - DD_PROCESS_AGENT_ENABLED=true
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_CONTAINER_EXCLUDE=webapp_datadog_1
+      - DD_SITE=ap1.datadoghq.com
+
+volumes:
+  redis_data:
+    driver: local
+  database:
+    driver: local

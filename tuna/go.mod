@@ -13,10 +13,12 @@ require (
 require (
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.27.8 // indirect
-	github.com/stretchr/testify v1.5.1 // indirect
+	github.com/stretchr/testify v1.8.1 // indirect
 )
 
 require (
+	github.com/DataDog/datadog-go/v5 v5.3.0 // indirect
+	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/go-redis/redis v6.15.9+incompatible // indirect

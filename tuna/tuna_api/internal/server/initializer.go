@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/lamt3/sushi/tuna/common/cache"
 	"github.com/lamt3/sushi/tuna/common/db"
+	"github.com/lamt3/sushi/tuna/common/web"
 	"github.com/lamt3/sushi/tuna/tuna_api/internal/account"
 	"github.com/lamt3/sushi/tuna/tuna_api/internal/handlers"
 	"github.com/lamt3/sushi/tuna/tuna_api/internal/repo"
@@ -34,6 +36,11 @@ func initializeAppComponents(app AppTemplate) http.HandlerFunc {
 
 func createRoutes(ah *handlers.AccountHandler) *httprouter.Router {
 	router := httprouter.New()
+
+	router.GET("/api/v1/health", func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		web.WriteJSON(w, 200, "im alive!!")
+	})
+
 	router.POST("/api/v1/user/account", ah.LoginUser)
 
 	return router
@@ -65,16 +72,12 @@ func createWrapper(router *httprouter.Router) http.HandlerFunc {
 
 func initPG() *db.OPPG {
 	return db.OPPGBuilder().
-		PrimaryConn("ABC", func(d *sqlx.DB) {
-			d.SetMaxOpenConns(15)
-			d.SetMaxIdleConns(15)
-			d.SetConnMaxLifetime(2 * time.Minute)
-		}).SecondaryConn([]string{"abc", "bcd"},
-		func(d *sqlx.DB) {
-			d.SetMaxOpenConns(15)
-			d.SetMaxIdleConns(15)
-			d.SetConnMaxLifetime(2 * time.Minute)
-		}).
+		PrimaryConn(fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", "0.0.0.0", "5432", "postgres", "postgres", "postgres"),
+			func(d *sqlx.DB) {
+				d.SetMaxOpenConns(15)
+				d.SetMaxIdleConns(15)
+				d.SetConnMaxLifetime(2 * time.Minute)
+			}).
 		Build()
 
 }
@@ -82,13 +85,13 @@ func initPG() *db.OPPG {
 func initCache() cache.ICache {
 	return cache.NewRedisCache(
 		&redis.Options{
-			Addr:         "8080",
-			Password:     "password",
-			DB:           1,
+			Addr:         "6379",
+			Password:     "",
+			DB:           0,
 			MaxRetries:   3,
 			PoolSize:     10,
-			ReadTimeout:  3 * time.Second,
-			WriteTimeout: 3 * time.Second,
+			ReadTimeout:  30 * time.Second,
+			WriteTimeout: 30 * time.Second,
 		},
 	)
 }
