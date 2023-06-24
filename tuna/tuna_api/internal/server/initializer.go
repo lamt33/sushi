@@ -39,11 +39,12 @@ func initializeAppComponents(app AppTemplate) http.HandlerFunc {
 func createRoutes(ah *handlers.AccountHandler) *httprouter.Router {
 	router := httprouter.New()
 
-	cli, err := statsd.New("dd-agent:8125")
+	cli, err := statsd.New("dd-agent:8125", statsd.WithNamespace("tuna_api"), statsd.WithTags([]string{"prod"}))
 	if err != nil {
 		logger.Error("error %s", err)
 
 	}
+
 	//114a119a-755b-4377-ac7b-4da80b2e04b9
 
 	mw := web.MW{
@@ -57,9 +58,32 @@ func createRoutes(ah *handlers.AccountHandler) *httprouter.Router {
 	// 	web.WriteJSON(w, 200, "im alive!!")
 	// })
 
-	router.GET("/api/v1/health", mw.Add(func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	router.GET("/api/v1/health", func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		startTime := time.Now()
+		logger.Info("in dd mw!!!")
+		time.Sleep(2 * time.Second)
+
+		duration := time.Since(startTime)
+
+		logger.Info("in dd mw2 %s", r.URL.Path)
+
+		// Send the metric to Datadog
+		err := cli.Timing("api.request.duration", duration, []string{"route:" + r.URL.Path}, 1)
+		if err != nil {
+			logger.Info("in dd mw3")
+			logger.Error("error in dd mw %s", err)
+		}
+		err = cli.Incr("api.request.count", []string{"route:" + r.URL.Path}, 1)
+		if err != nil {
+			logger.Error("error in dd mw %s", err)
+		}
+
+		logger.Info("in dd mw4")
+		a := cli.GetTelemetry().TotalMetrics
+		fmt.Println(a)
+
 		web.WriteJSON(w, 200, "im alive!!")
-	}))
+	})
 
 	router.POST("/api/v1/user/account", ah.LoginUser)
 

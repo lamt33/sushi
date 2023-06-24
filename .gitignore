@@ -1,2 +1,4 @@
 tuna/postgres-data/
 tuna/redis_data/
+./tuna/.env
+tuna/.env

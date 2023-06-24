@@ -10,7 +10,6 @@ import (
 
 	"github.com/lamt3/sushi/tuna/common/logger"
 	"github.com/lamt3/sushi/tuna/common/web"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 var (
@@ -23,14 +22,6 @@ func Start() {
 
 	cache := initCache()
 	defer cache.Close()
-
-	tracer.Start(
-		tracer.WithAgentAddr("dd-agent:8126"),
-		tracer.WithService("tuna"),
-		tracer.WithAnalytics(true),
-		tracer.WithEnv("prod"),
-	)
-	defer tracer.Stop()
 
 	wrappedH := initializeAppComponents(AppTemplate{
 		PG:    pg,

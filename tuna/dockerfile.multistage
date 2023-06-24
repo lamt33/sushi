@@ -3,7 +3,7 @@
 # FROM docker:1.20
 
 # Use the specified Go version
-FROM golang:1.20-alpine
+FROM golang:1.20-alpine AS build
 # Copy the Go binary into the container
 WORKDIR /app
 
@@ -16,6 +16,9 @@ COPY /tuna_api ./tuna_api
 
 RUN go build ./tuna_api/cmd
 
+FROM scratch
+WORKDIR /
+COPY --from=build /app/cmd /cmd
 EXPOSE 8080
 # Set the command to run the binary when the container starts
-CMD ["./cmd"]
+CMD ["/cmd"]

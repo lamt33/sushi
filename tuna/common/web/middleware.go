@@ -34,6 +34,8 @@ func (mw *MW) UseDD() {
 			// Calculate the duration
 			duration := time.Since(startTime)
 
+			logger.Info("in dd mw2")
+
 			// Send the metric to Datadog
 			err := mw.DD.Timing("api.request.duration", duration, []string{"route:" + r.URL.Path}, 1)
 			if err != nil {

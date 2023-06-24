@@ -7,7 +7,7 @@ services:
   webapp:
     container_name: tuna_api
     build:
-      dockerfile: dockerfile
+      dockerfile: dockerfile.multistage
     ports:
       - 8080:8080
     depends_on:
@@ -52,17 +52,18 @@ services:
     container_name: dd-agent
     image: gcr.io/datadoghq/agent:7
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - /proc/:/host/proc/:ro
       - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
     environment:
-      - DD_API_KEY=c5913dd36884f9072ca111f19161e5b0
+      - DD_API_KEY=${DD_API_KEY}
       - DD_APM_ENABLED=true
       - DD_PROCESS_AGENT_ENABLED=true
       - DD_LOGS_ENABLED=true
       - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
       - DD_CONTAINER_EXCLUDE=webapp_datadog_1
       - DD_SITE=ap1.datadoghq.com
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
     ports:
       - "8126:8126/tcp"
       - "8125:8125/udp"
