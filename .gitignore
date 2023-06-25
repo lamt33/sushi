@@ -2,3 +2,8 @@ tuna/postgres-data/
 tuna/redis_data/
 ./tuna/.env
 tuna/.env
+tuna/tf/.terraform/providers/registry.terraform.io/hashicorp/aws/2.70.0/darwin_amd64/terraform-provider-aws_v2.70.0_x4
+tuna/tf/.terraform.tfstate.lock.info
+tuna/tf/.terraform.lock.hcl
+tuna/tf/terraform.tfstate.backup
+tuna/tf/terraform.tfstate
